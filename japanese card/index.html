@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語カード / 日文字卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a1a;
+  --ink-2: #555;
+  --ink-3: #999;
+  --paper: #faf9f7;
+  --paper-2: #f0ede8;
+  --paper-3: #e6e2db;
+  --red: #c0392b;
+  --red-bg: #fdf0ee;
+  --green: #1e6e42;
+  --green-bg: #eef7f2;
+  --blue: #1a4a8a;
+  --blue-bg: #eef3fc;
+  --amber: #7a4f00;
+  --amber-bg: #fdf5e4;
+  --border: rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --transition: 0.2s ease;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+.app-wrap { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--paper-2);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.main { flex: 1; padding: 2rem 2.5rem; max-width: 820px; }
+.logo {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+}
+.logo-sub { font-size: 0.72rem; color: var(--ink-3); margin-bottom: 1.75rem; }
+.nav-group { margin-bottom: 1.25rem; }
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  transition: background var(--transition), color var(--transition);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--paper-3); color: var(--ink); }
+.nav-item.active { background: var(--ink); color: var(--paper); }
+.nav-icon { font-size: 0.9rem; min-width: 18px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.4rem;
+}
+.page-sub { font-size: 0.82rem; color: var(--ink-3); margin-bottom: 1.75rem; }
+
+/* ── Stats Row ── */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
+.stat-card {
+  background: var(--paper-2);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  text-align: center;
+}
+.stat-num { font-size: 1.6rem; font-weight: 700; color: var(--ink); font-family: 'DM Mono', monospace; }
+.stat-label { font-size: 0.72rem; color: var(--ink-3); margin-top: 0.15rem; }
+
+/* ── Flashcard ── */
+.card-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
+.card-perspective { perspective: 1000px; width: 100%; max-width: 460px; height: 240px; cursor: pointer; }
+.card-inner {
+  position: relative; width: 100%; height: 100%;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.card-perspective.flipped .card-inner { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; inset: 0;
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem;
+  gap: 0.5rem;
+}
+.card-back { transform: rotateY(180deg); background: var(--paper-2); }
+.card-tags { display: flex; gap: 0.4rem; position: absolute; top: 1rem; left: 1rem; }
+.card-kanji {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+.card-hint { font-size: 0.75rem; color: var(--ink-3); margin-top: 0.5rem; }
+.card-reading { font-size: 1rem; color: var(--ink-2); }
+.card-zh { font-size: 1.4rem; font-weight: 500; color: var(--ink); }
+.card-ex {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+.card-ex-zh { color: var(--ink-3); font-size: 0.75rem; }
+.card-grammar {
+  font-size: 0.72rem;
+  color: var(--blue);
+  background: var(--blue-bg);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+.card-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+
+/* ── Tags ── */
+.tag {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+.tag-n5 { background: #e8f5e9; color: #2e7d32; }
+.tag-n4 { background: #e3f2fd; color: #1565c0; }
+.tag-n3 { background: #fff8e1; color: #e65100; }
+.tag-n2 { background: #fce4ec; color: #880e4f; }
+.tag-n1 { background: #fbe9e7; color: #bf360c; }
+.tag-theme { background: var(--paper-3); color: var(--ink-2); }
+
+/* ── Buttons ── */
+.btn {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.btn:hover { background: var(--paper-3); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn-primary:hover { opacity: 0.85; background: var(--ink); }
+.btn-danger { color: var(--red); border-color: currentColor; }
+.btn-danger:hover { background: var(--red-bg); }
+.btn-success { color: var(--green); border-color: currentColor; }
+.btn-success:hover { background: var(--green-bg); }
+
+/* ── Progress ── */
+.progress-bar-wrap { height: 3px; background: var(--paper-3); border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--ink); border-radius: 3px; transition: width 0.4s ease; }
+
+/* ── Theme Grid ── */
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.75rem; }
+.theme-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.theme-card:hover { border-color: var(--ink); }
+.theme-card.selected { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+.theme-emoji { font-size: 1.6rem; margin-bottom: 0.4rem; }
+.theme-name { font-size: 0.8rem; color: var(--ink); font-weight: 500; }
+.theme-name-zh { font-size: 0.7rem; color: var(--ink-3); margin-top: 0.1rem; }
+
+/* ── Level Tabs ── */
+.level-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.level-tab {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: var(--paper);
+  color: var(--ink-2);
+  transition: all var(--transition);
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.level-tab:hover { border-color: var(--ink); color: var(--ink); }
+.level-tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ── Card List ── */
+.card-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.card-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: box-shadow var(--transition);
+}
+.card-list-item:hover { box-shadow: var(--shadow); }
+.card-list-jp { font-family: 'Noto Serif JP', serif; font-size: 1.2rem; font-weight: 700; min-width: 60px; }
+.card-list-reading { font-size: 0.75rem; color: var(--ink-3); min-width: 80px; }
+.card-list-zh { font-size: 0.85rem; color: var(--ink-2); flex: 1; }
+.card-list-badge { margin-left: auto; }
+
+/* ── Grammar ── */
+.grammar-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.grammar-title { font-size: 1.1rem; font-weight: 700; font-family: 'Noto Serif JP', serif; margin-bottom: 0.3rem; }
+.grammar-meta { font-size: 0.75rem; color: var(--ink-3); margin-bottom: 0.75rem; display: flex; gap: 0.5rem; align-items: center; }
+.grammar-example {
+  font-size: 0.88rem;
+  line-height: 1.8;
+  border-left: 2px solid var(--paper-3);
+  padding-left: 0.75rem;
+  color: var(--ink-2);
+}
+.grammar-example-zh { color: var(--ink-3); font-size: 0.8rem; }
+
+/* ── Quiz ── */
+.quiz-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 1rem;
+}
+.quiz-q-main {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--ink);
+  margin-bottom: 0.3rem;
+}
+.quiz-q-reading { font-size: 0.9rem; color: var(--ink-3); text-align: center; margin-bottom: 1.5rem; }
+.quiz-q-sentence {
+  font-size: 1rem;
+  text-align: center;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+  padding: 0.75rem;
+  background: var(--paper-2);
+  border-radius: var(--radius-sm);
+}
+.quiz-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.quiz-choice {
+  padding: 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--paper);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition);
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+}
+.quiz-choice:hover:not(:disabled) { border-color: var(--ink); background: var(--paper-2); }
+.quiz-choice:disabled { cursor: default; }
+.quiz-choice.correct { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.quiz-choice.wrong { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+.quiz-fill { width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 1rem; font-family: 'Noto Sans JP', sans-serif; background: var(--paper); color: var(--ink); margin-bottom: 0.75rem; }
+.quiz-fill:focus { outline: 2px solid var(--ink); outline-offset: 2px; }
+.quiz-feedback { text-align: center; font-size: 0.88rem; padding: 0.5rem; margin-bottom: 0.75rem; border-radius: var(--radius-sm); }
+.quiz-feedback.correct { background: var(--green-bg); color: var(--green); }
+.quiz-feedback.wrong { background: var(--red-bg); color: var(--red); }
+.quiz-progress { font-size: 0.78rem; color: var(--ink-3); margin-bottom: 1rem; display: flex; justify-content: space-between; }
+.quiz-type-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; }
+.quiz-type-tab {
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  cursor: pointer;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all var(--transition);
+}
+.quiz-type-tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ── Results ── */
+.result-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
+.result-score { font-size: 3rem; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--ink); }
+.result-max { font-size: 1.2rem; color: var(--ink-3); }
+.result-grade {
+  font-size: 0.82rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.result-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+.result-item.correct-item { background: var(--green-bg); }
+.result-item.wrong-item { background: var(--red-bg); }
+.result-item-jp { font-family: 'Noto Serif JP', serif; font-weight: 700; font-size: 1rem; min-width: 50px; }
+.result-item-ans { color: var(--ink-2); flex: 1; }
+.result-item-icon { font-size: 0.9rem; }
+
+/* ── History ── */
+.history-empty { text-align: center; color: var(--ink-3); padding: 3rem; font-size: 0.88rem; }
+.history-session {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.history-session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.history-session-date { font-size: 0.78rem; color: var(--ink-3); }
+.history-session-score { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500; }
+.history-session-details { font-size: 0.78rem; color: var(--ink-2); }
+
+/* ── Wrong Cards ── */
+.wrong-empty { text-align: center; color: var(--ink-3); padding: 3rem; font-size: 0.88rem; }
+
+/* ── Mobile ── */
+@media (max-width: 680px) {
+  .app-wrap { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; min-width: unset; position: relative; flex-direction: row; flex-wrap: wrap; gap: 0.25rem; padding: 0.75rem; border-right: none; border-bottom: 1px solid var(--border); }
+  .sidebar .logo, .sidebar .logo-sub, .sidebar .nav-label { display: none; }
+  .nav-group { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0; }
+  .nav-item { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+  .main { padding: 1.25rem; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .quiz-choices { grid-template-columns: 1fr; }
+}
+
+/* ── Speak button ── */
+.speak-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+  color: var(--ink-2);
+}
+.speak-btn:hover { background: var(--paper-3); }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+/* ── Loading ── */
+.loading { text-align: center; color: var(--ink-3); padding: 3rem; font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<div class="app-wrap">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="logo">日本語カード</div>
+  <div class="logo-sub">日文字卡學習系統</div>
+
+  <div class="nav-group">
+    <div class="nav-label">メニュー / 功能</div>
+    <button class="nav-item active" onclick="goto('daily')">
+      <span class="nav-icon">☀</span> 今日の一枚
+    </button>
+    <button class="nav-item" onclick="goto('themes')">
+      <span class="nav-icon">📂</span> テーマ別
+    </button>
+    <button class="nav-item" onclick="goto('jlpt')">
+      <span class="nav-icon">📊</span> JLPT N1〜N5
+    </button>
+    <button class="nav-item" onclick="goto('grammar')">
+      <span class="nav-icon">📖</span> 文法補充
+    </button>
+    <button class="nav-item" onclick="goto('quiz')">
+      <span class="nav-icon">✏</span> 小テスト
+    </button>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">記録 / 記錄</div>
+    <button class="nav-item" onclick="goto('history')">
+      <span class="nav-icon">📈</span> テスト結果
+    </button>
+    <button class="nav-item" onclick="goto('wrong')">
+      <span class="nav-icon">⚑</span> 間違えた語
+    </button>
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- ── 今日の一枚 ── -->
+  <div class="page active" id="page-daily">
+    <div class="page-title">今日の一枚 / 每日字卡</div>
+    <div class="page-sub">毎日新しい単語を覚えよう・每天學一個新詞</div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-learned">0</div>
+        <div class="stat-label">今日習得・今日已學</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-streak">0</div>
+        <div class="stat-label">連続日数・連續天數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">総習得数・總習得數</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="daily-progress" style="width:0%"></div>
+    </div>
+
+    <div class="card-area">
+      <div class="card-perspective" id="daily-card" onclick="flipDailyCard()">
+        <div class="card-inner">
+          <div class="card-face" id="daily-front">
+            <div class="card-tags" id="daily-tags"></div>
+            <div class="card-kanji" id="daily-kanji">—</div>
+            <div class="card-hint">タップして意味を見る・點擊查看意思</div>
+          </div>
+          <div class="card-face card-back" id="daily-back">
+            <div class="card-reading" id="daily-reading"></div>
+            <div class="card-zh" id="daily-zh"></div>
+            <div class="card-ex" id="daily-ex">
+              <span id="daily-ex-jp"></span><br>
+              <span class="card-ex-zh" id="daily-ex-zh"></span>
+            </div>
+            <div class="card-grammar" id="daily-grammar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-actions" style="margin-top:1rem">
+        <button class="speak-btn" onclick="speak('daily')" title="発音">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 7h3l4.5-4v14L6 13H3a1 1 0 01-1-1V8a1 1 0 011-1zm10 .17a4 4 0 010 5.66M13.5 4.5a7 7 0 010 11"/>
+          </svg>
+        </button>
+        <button class="btn btn-danger" onclick="markCard('again')">もう一度・再學</button>
+        <button class="btn" onclick="markCard('good')">覚えた・記住了</button>
+        <button class="btn btn-primary" onclick="nextDailyCard()">次へ・下一張 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── テーマ別 ── -->
+  <div class="page" id="page-themes">
+    <div class="page-title">テーマ別 / 主題字卡</div>
+    <div class="page-sub">興味のあるテーマを選んで学習・選擇主題開始學習</div>
+
+    <div class="theme-grid" id="theme-grid"></div>
+
+    <div id="theme-card-area" style="display:none">
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div>
+          <span style="font-weight:500;font-size:1rem" id="theme-current-name"></span>
+          <span style="color:var(--ink-3);font-size:0.8rem;margin-left:0.5rem" id="theme-card-count"></span>
+        </div>
+        <button class="btn" onclick="closeTheme()">← 戻る・返回</button>
+      </div>
+      <div class="card-area">
+        <div class="card-perspective" id="theme-card" onclick="flipThemeCard()">
+          <div class="card-inner">
+            <div class="card-face">
+              <div class="card-tags" id="theme-tags"></div>
+              <div class="card-kanji" id="theme-kanji">—</div>
+              <div class="card-hint">タップして意味を見る・點擊查看意思</div>
+            </div>
+            <div class="card-face card-back">
+              <div class="card-reading" id="theme-reading"></div>
+              <div class="card-zh" id="theme-zh"></div>
+              <div class="card-ex">
+                <span id="theme-ex-jp"></span><br>
+                <span class="card-ex-zh" id="theme-ex-zh"></span>
+              </div>
+              <div class="card-grammar" id="theme-grammar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions" style="margin-top:1rem">
+          <button class="speak-btn" onclick="speak('theme')">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 7h3l4.5-4v14L6 13H3a1 1 0 01-1-1V8a1 1 0 011-1zm10 .17a4 4 0 010 5.66M13.5 4.5a7 7 0 010 11"/>
+            </svg>
+          </button>
+          <button class="btn btn-danger" onclick="themeMarkCard('again')">もう一度・再學</button>
+          <button class="btn" onclick="themeMarkCard('good')">覚えた・記住了</button>
+          <button class="btn btn-primary" onclick="nextThemeCard()">次へ・下一張 →</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="card-list" id="theme-card-list"></div>
+    </div>
+  </div>
+
+  <!-- ── JLPT ── -->
+  <div class="page" id="page-jlpt">
+    <div class="page-title">JLPT N1〜N5</div>
+    <div class="page-sub">試験レベル別に学習・依考試等級學習</div>
+
+    <div class="level-tabs" id="jlpt-tabs">
+      <button class="level-tab active" onclick="selectLevel('N5',this)">N5</button>
+      <button class="level-tab" onclick="selectLevel('N4',this)">N4</button>
+      <button class="level-tab" onclick="selectLevel('N3',this)">N3</button>
+      <button class="level-tab" onclick="selectLevel('N2',this)">N2</button>
+      <button class="level-tab" onclick="selectLevel('N1',this)">N1</button>
+    </div>
+
+    <div id="jlpt-card-area">
+      <div class="card-area">
+        <div class="card-perspective" id="jlpt-card" onclick="flipJlptCard()">
+          <div class="card-inner">
+            <div class="card-face">
+              <div class="card-tags" id="jlpt-tags"></div>
+              <div class="card-kanji" id="jlpt-kanji">—</div>
+              <div class="card-hint">タップして意味を見る・點擊查看意思</div>
+            </div>
+            <div class="card-face card-back">
+              <div class="card-reading" id="jlpt-reading"></div>
+              <div class="card-zh" id="jlpt-zh"></div>
+              <div class="card-ex">
+                <span id="jlpt-ex-jp"></span><br>
+                <span class="card-ex-zh" id="jlpt-ex-zh"></span>
+              </div>
+              <div class="card-grammar" id="jlpt-grammar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions" style="margin-top:1rem">
+          <button class="speak-btn" onclick="speak('jlpt')">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 7h3l4.5-4v14L6 13H3a1 1 0 01-1-1V8a1 1 0 011-1zm10 .17a4 4 0 010 5.66M13.5 4.5a7 7 0 010 11"/>
+            </svg>
+          </button>
+          <button class="btn btn-primary" onclick="nextJlptCard()">次へ・下一張 →</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="card-list" id="jlpt-card-list"></div>
+    </div>
+
+    <div class="loading" id="jlpt-loading" style="display:none">読み込み中・載入中...</div>
+  </div>
+
+  <!-- ── 文法 ── -->
+  <div class="page" id="page-grammar">
+    <div class="page-title">文法補充 / 文法重點</div>
+    <div class="page-sub">重要な文法パターンを例文で学ぼう・以例句學習重要文法</div>
+    <div id="grammar-list"></div>
+  </div>
+
+  <!-- ── Quiz ── -->
+  <div class="page" id="page-quiz">
+    <div class="page-title">小テスト / 小測驗</div>
+    <div class="page-sub">4種類のテストで実力を確認・四種題型測驗實力</div>
+
+    <div class="quiz-type-tabs">
+      <button class="quiz-type-tab active" onclick="setQuizType('choice',this)">選択・選擇題</button>
+      <button class="quiz-type-tab" onclick="setQuizType('fill',this)">穴埋め・克漏字</button>
+      <button class="quiz-type-tab" onclick="setQuizType('dialog',this)">会話・對話填空</button>
+      <button class="quiz-type-tab" onclick="setQuizType('reading',this)">読解・閱讀理解</button>
+    </div>
+
+    <div id="quiz-area">
+      <div class="quiz-progress">
+        <span id="quiz-progress-text">1 / 10</span>
+        <span id="quiz-score-inline">正解・答對：0</span>
+      </div>
+      <div class="quiz-card" id="quiz-card-el"></div>
+      <div class="quiz-feedback" id="quiz-feedback" style="display:none"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+        <button class="btn" id="quiz-submit-btn" onclick="submitQuiz()" style="display:none">確認・確認</button>
+        <button class="btn btn-primary" id="quiz-next-btn" onclick="nextQuiz()" style="display:none">次へ・下一題 →</button>
+      </div>
+    </div>
+
+    <div id="quiz-result-area" style="display:none">
+      <div class="result-header">
+        <div class="result-score" id="result-score">0</div>
+        <div class="result-max" id="result-max">/ 10</div>
+        <div class="result-grade" id="result-grade"></div>
+      </div>
+      <div class="result-list" id="result-list"></div>
+      <div style="display:flex;gap:0.75rem;margin-top:1.25rem">
+        <button class="btn btn-primary" onclick="restartQuiz()">もう一度・再測一次</button>
+        <button class="btn" onclick="goto('history')">結果を保存済み・已儲存結果</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── History ── -->
+  <div class="page" id="page-history">
+    <div class="page-title">テスト結果 / 測驗記錄</div>
+    <div class="page-sub">過去のテスト結果を確認・查看過去測驗結果</div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ── Wrong Cards ── -->
+  <div class="page" id="page-wrong">
+    <div class="page-title">間違えた語 / 錯誤字卡</div>
+    <div class="page-sub">答え間違えた単語を集中復習・集中複習答錯的單字</div>
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
+      <button class="btn btn-primary" id="wrong-study-btn" onclick="studyWrong()">まとめて復習・一起複習</button>
+      <button class="btn btn-danger" onclick="clearWrong()">リセット・清除</button>
+    </div>
+    <div class="card-list" id="wrong-list"></div>
+  </div>
+
+</main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   DATA & STATE
+═══════════════════════════════════════ */
+const THEMES = [
+  {id:'travel', label:'旅行', labelZh:'旅遊', icon:'✈', file:'data/theme_travel.json'},
+  {id:'daily',  label:'日常生活', labelZh:'日常', icon:'🏠', file:'data/theme_daily.json'},
+  // 後續主題加在這裡
+];
+const JLPT_FILES = {
+  N5: 'data/jlpt_n5.json',
+  N4: 'data/jlpt_n4.json',
+  N3: 'data/jlpt_n3.json',
+  N2: 'data/jlpt_n2.json',
+  N1: 'data/jlpt_n1.json',
+};
+const GRAMMAR_DATA = [
+  {title:'〜てください', usage:'依頼・請求 / 用於請求、指示', level:'N5', examples:[{jp:'もう一度言ってください。',zh:'請再說一次。'},{jp:'ここに名前を書いてください。',zh:'請在這裡寫下名字。'}]},
+  {title:'〜たいです', usage:'希望・願望 / 表達願望', level:'N5', examples:[{jp:'日本に行きたいです。',zh:'我想去日本。'},{jp:'寿司を食べたいです。',zh:'我想吃壽司。'}]},
+  {title:'〜ています', usage:'進行形・状態 / 進行中或持續狀態', level:'N5', examples:[{jp:'今、電車に乗っています。',zh:'現在在搭電車。'},{jp:'彼は先生をしています。',zh:'他是老師。（職業）'}]},
+  {title:'〜てもいいですか', usage:'許可を求める / 尋求許可', level:'N5', examples:[{jp:'写真を撮ってもいいですか？',zh:'可以拍照嗎？'},{jp:'ここに座ってもいいですか？',zh:'可以坐在這裡嗎？'}]},
+  {title:'〜ないでください', usage:'禁止の依頼 / 請求對方不要做', level:'N5', examples:[{jp:'ここで電話しないでください。',zh:'請不要在這裡講電話。'},{jp:'忘れないでください。',zh:'請不要忘記。'}]},
+  {title:'〜たほうがいい', usage:'アドバイス / 給建議', level:'N4', examples:[{jp:'早く寝たほうがいいですよ。',zh:'早點睡比較好喔。'},{jp:'医者に行ったほうがいいです。',zh:'去看醫生比較好。'}]},
+  {title:'〜なければなりません', usage:'義務・必要 / 表示義務', level:'N4', examples:[{jp:'明日までに出さなければなりません。',zh:'必須在明天之前交出去。'},{jp:'もっと練習しなければなりません。',zh:'必須更加練習。'}]},
+  {title:'〜ながら', usage:'同時動作 / 同時做兩個動作', level:'N4', examples:[{jp:'音楽を聞きながら勉強します。',zh:'一邊聽音樂一邊讀書。'},{jp:'歩きながら話しましょう。',zh:'我們邊走邊說吧。'}]},
+  {title:'〜てしまう', usage:'完了・後悔 / 做完了（帶遺憾語氣）', level:'N4', examples:[{jp:'財布を忘れてしまいました。',zh:'不小心忘了錢包。'},{jp:'ケーキを全部食べてしまいました。',zh:'把蛋糕全部吃完了。'}]},
+  {title:'〜ようになる', usage:'変化 / 表示能力或習慣的改變', level:'N3', examples:[{jp:'日本語が話せるようになりました。',zh:'變得能夠說日文了。'},{jp:'毎日運動するようになりました。',zh:'變得每天都會運動了。'}]},
+];
+
+const DIALOG_QUESTIONS = [
+  {context:'レストランで / 在餐廳', dialog:['店員：いらっしゃいませ。何名様ですか？','客：___人です。'], blank:2, hint:'（人数・人數）', choices:['二', '多い', '静か', 'たくさん'], answer:'二', zh:'店員：歡迎光臨。請問幾位？ / 客人：兩位。'},
+  {context:'駅で / 在車站', dialog:['A：すみません、新宿駅___どこですか？','B：あそこです。'], blank:0, hint:'（助詞・助詞）', choices:['は','が','を','で'], answer:'は', zh:'A：不好意思，新宿站在哪裡？ / B：在那裡。'},
+  {context:'お店で / 在店裡', dialog:['客：これ、___もらえますか？','店員：はい、どうぞ。'], blank:0, hint:'（表達請求・請求表現）', choices:['いただいて','ください','くれて','もって'], answer:'ください', zh:'客人：請給我這個。 / 店員：好的，請。'},
+];
+
+const READING_QUESTIONS = [
+  {
+    title:'日本の祭り / 日本祭典',
+    text:'日本には様々なお祭りがあります。夏には花火大会がよく行われます。地域の人々が集まり、浴衣を着て楽しみます。お祭りには屋台があり、たこ焼きや焼きそばなどが売られています。',
+    textZh:'日本有各式各樣的祭典。夏天常舉辦煙火大會。當地居民聚集在一起，穿著浴衣享樂。祭典上有攤販，販售章魚燒和炒麵等食物。',
+    questions:[
+      {q:'夏に何がよく行われますか？', qZh:'夏天常舉辦什麼？', choices:['お祭り','花火大会','屋台','浴衣'], answer:'花火大会'},
+      {q:'お祭りで何が売られていますか？', qZh:'祭典上販售什麼？', choices:['花火','浴衣','たこ焼き','着物'], answer:'たこ焼き'},
+    ]
+  }
+];
+
+/* ─ State ─ */
+let allCards = [];
+let dailyQueue = [];
+let dailyIdx = 0;
+let themeCards = [];
+let themeIdx = 0;
+let jlptCards = [];
+let jlptIdx = 0;
+let currentLevel = 'N5';
+let quizType = 'choice';
+let quizItems = [];
+let quizIdx = 0;
+let quizScore = 0;
+let quizResults = [];
+let quizAnswered = false;
+let currentDailyCard = null;
+let currentThemeCard = null;
+let currentJlptCard = null;
+let wrongStudyQueue = [];
+let wrongStudyIdx = 0;
+
+/* ─ Persistence ─ */
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function goto(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + id + "'"))
+      b.classList.add('active');
+  });
+  if (id === 'history') renderHistory();
+  if (id === 'wrong') renderWrongList();
+  if (id === 'grammar') renderGrammar();
+  if (id === 'themes') renderThemeGrid();
+  if (id === 'jlpt') loadJlptLevel(currentLevel);
+}
+
+/* ═══════════════════════════════════════
+   DAILY CARD
+═══════════════════════════════════════ */
+async function initDaily() {
+  allCards = [];
+  for (const t of THEMES) {
+    try {
+      const r = await fetch(t.file);
+      const d = await r.json();
+      allCards = allCards.concat(d.cards.map(c => ({...c, theme:t.label, themeZh:t.labelZh})));
+    } catch {}
+  }
+  try {
+    const r = await fetch(JLPT_FILES['N5']);
+    const d = await r.json();
+    allCards = allCards.concat(d.cards.map(c => ({...c, theme:'N5', themeZh:'N5'})));
+  } catch {}
+
+  shuffle(allCards);
+  const learned = LS.get('learnedToday') || [];
+  dailyQueue = allCards.filter(c => !learned.includes(c.id));
+  if (dailyQueue.length === 0) dailyQueue = [...allCards];
+  dailyIdx = 0;
+  updateStats();
+  showDailyCard();
+}
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
+
+function showDailyCard() {
+  if (!dailyQueue.length) return;
+  const c = dailyQueue[dailyIdx % dailyQueue.length];
+  currentDailyCard = c;
+  document.getElementById('daily-card').classList.remove('flipped');
+  document.getElementById('daily-kanji').textContent = c.jp;
+  document.getElementById('daily-reading').textContent = c.reading;
+  document.getElementById('daily-zh').textContent = c.zh;
+  document.getElementById('daily-ex-jp').textContent = c.ex_jp || '';
+  document.getElementById('daily-ex-zh').textContent = c.ex_zh || '';
+  document.getElementById('daily-grammar').textContent = c.grammar || '';
+  const tags = document.getElementById('daily-tags');
+  tags.innerHTML = `<span class="tag tag-${c.level}">${c.level}</span><span class="tag tag-theme">${c.theme}</span>`;
+}
+
+function flipDailyCard() { document.getElementById('daily-card').classList.toggle('flipped'); }
+
+function nextDailyCard() {
+  dailyIdx = (dailyIdx + 1) % dailyQueue.length;
+  document.getElementById('daily-card').classList.remove('flipped');
+  setTimeout(showDailyCard, 50);
+}
+
+function markCard(type) {
+  if (!currentDailyCard) return;
+  if (type === 'good') {
+    const learned = LS.get('learnedToday') || [];
+    if (!learned.includes(currentDailyCard.id)) {
+      learned.push(currentDailyCard.id);
+      LS.set('learnedToday', learned);
+      const total = LS.get('totalLearned') || [];
+      if (!total.includes(currentDailyCard.id)) { total.push(currentDailyCard.id); LS.set('totalLearned', total); }
+    }
+    updateStats();
+  }
+  nextDailyCard();
+}
+
+function updateStats() {
+  const learned = LS.get('learnedToday') || [];
+  const total = LS.get('totalLearned') || [];
+  document.getElementById('stat-learned').textContent = learned.length;
+  document.getElementById('stat-total').textContent = total.length;
+  const pct = dailyQueue.length ? Math.round(learned.length / dailyQueue.length * 100) : 0;
+  document.getElementById('daily-progress').style.width = Math.min(pct, 100) + '%';
+  const streak = LS.get('streak') || 0;
+  document.getElementById('stat-streak').textContent = streak;
+}
+
+/* ═══════════════════════════════════════
+   THEME
+═══════════════════════════════════════ */
+function renderThemeGrid() {
+  const g = document.getElementById('theme-grid');
+  g.innerHTML = THEMES.map(t =>
+    `<div class="theme-card" onclick="loadTheme('${t.id}')">
+      <div class="theme-emoji">${t.icon}</div>
+      <div class="theme-name">${t.label}</div>
+      <div class="theme-name-zh">${t.labelZh}</div>
+    </div>`
+  ).join('');
+}
+
+async function loadTheme(id) {
+  const t = THEMES.find(x => x.id === id);
+  if (!t) return;
+  try {
+    const r = await fetch(t.file);
+    const d = await r.json();
+    themeCards = d.cards;
+    themeIdx = 0;
+    shuffle(themeCards);
+    document.getElementById('theme-current-name').textContent = `${t.label} / ${t.labelZh}`;
+    document.getElementById('theme-card-count').textContent = `${themeCards.length}語`;
+    document.getElementById('theme-card-area').style.display = 'block';
+    document.getElementById('theme-grid').style.display = 'none';
+    showThemeCard();
+    renderThemeList();
+  } catch { alert('データを読み込めませんでした'); }
+}
+
+function closeTheme() {
+  document.getElementById('theme-card-area').style.display = 'none';
+  document.getElementById('theme-grid').style.display = 'grid';
+}
+
+function showThemeCard() {
+  if (!themeCards.length) return;
+  const c = themeCards[themeIdx % themeCards.length];
+  currentThemeCard = c;
+  document.getElementById('theme-card').classList.remove('flipped');
+  document.getElementById('theme-kanji').textContent = c.jp;
+  document.getElementById('theme-reading').textContent = c.reading;
+  document.getElementById('theme-zh').textContent = c.zh;
+  document.getElementById('theme-ex-jp').textContent = c.ex_jp || '';
+  document.getElementById('theme-ex-zh').textContent = c.ex_zh || '';
+  document.getElementById('theme-grammar').textContent = c.grammar || '';
+  document.getElementById('theme-tags').innerHTML = `<span class="tag tag-${c.level}">${c.level}</span>`;
+}
+
+function flipThemeCard() { document.getElementById('theme-card').classList.toggle('flipped'); }
+function nextThemeCard() { themeIdx = (themeIdx + 1) % themeCards.length; document.getElementById('theme-card').classList.remove('flipped'); setTimeout(showThemeCard, 50); }
+function themeMarkCard(t) { if(t==='good' && currentThemeCard){ const learned=LS.get('totalLearned')||[]; if(!learned.includes(currentThemeCard.id)){learned.push(currentThemeCard.id);LS.set('totalLearned',learned);} } nextThemeCard(); }
+
+function renderThemeList() {
+  const l = document.getElementById('theme-card-list');
+  l.innerHTML = themeCards.map(c =>
+    `<div class="card-list-item" onclick="">
+      <div class="card-list-jp">${c.jp}</div>
+      <div class="card-list-reading">${c.reading}</div>
+      <div class="card-list-zh">${c.zh}</div>
+      <div class="card-list-badge"><span class="tag tag-${c.level}">${c.level}</span></div>
+    </div>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════
+   JLPT
+═══════════════════════════════════════ */
+async function loadJlptLevel(level) {
+  currentLevel = level;
+  const file = JLPT_FILES[level];
+  document.getElementById('jlpt-loading').style.display = 'block';
+  document.getElementById('jlpt-card-area').style.display = 'none';
+  try {
+    const r = await fetch(file);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    jlptCards = d.cards;
+    jlptIdx = 0;
+    shuffle(jlptCards);
+    document.getElementById('jlpt-loading').style.display = 'none';
+    document.getElementById('jlpt-card-area').style.display = 'block';
+    showJlptCard();
+    renderJlptList();
+  } catch {
+    document.getElementById('jlpt-loading').textContent = `${level} のデータはまだ準備中です / ${level} 資料準備中`;
+  }
+}
+
+function selectLevel(level, el) {
+  document.querySelectorAll('.level-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadJlptLevel(level);
+}
+
+function showJlptCard() {
+  if (!jlptCards.length) return;
+  const c = jlptCards[jlptIdx % jlptCards.length];
+  currentJlptCard = c;
+  document.getElementById('jlpt-card').classList.remove('flipped');
+  document.getElementById('jlpt-kanji').textContent = c.jp;
+  document.getElementById('jlpt-reading').textContent = c.reading;
+  document.getElementById('jlpt-zh').textContent = c.zh;
+  document.getElementById('jlpt-ex-jp').textContent = c.ex_jp || '';
+  document.getElementById('jlpt-ex-zh').textContent = c.ex_zh || '';
+  document.getElementById('jlpt-grammar').textContent = c.grammar || '';
+  document.getElementById('jlpt-tags').innerHTML = `<span class="tag tag-${c.level}">${c.level}</span>${c.pos ? `<span class="tag tag-theme">${c.pos}</span>` : ''}`;
+}
+
+function flipJlptCard() { document.getElementById('jlpt-card').classList.toggle('flipped'); }
+function nextJlptCard() { jlptIdx = (jlptIdx + 1) % jlptCards.length; document.getElementById('jlpt-card').classList.remove('flipped'); setTimeout(showJlptCard, 50); }
+
+function renderJlptList() {
+  const l = document.getElementById('jlpt-card-list');
+  l.innerHTML = jlptCards.slice(0, 30).map(c =>
+    `<div class="card-list-item">
+      <div class="card-list-jp">${c.jp}</div>
+      <div class="card-list-reading">${c.reading}</div>
+      <div class="card-list-zh">${c.zh}</div>
+      <div class="card-list-badge">${c.pos ? `<span class="tag tag-theme">${c.pos}</span>` : ''}</div>
+    </div>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════
+   GRAMMAR
+═══════════════════════════════════════ */
+function renderGrammar() {
+  document.getElementById('grammar-list').innerHTML = GRAMMAR_DATA.map(g =>
+    `<div class="grammar-card">
+      <div class="grammar-title">${g.title}</div>
+      <div class="grammar-meta">
+        <span class="tag tag-${g.level}">${g.level}</span>
+        <span>${g.usage}</span>
+      </div>
+      ${g.examples.map(e => `<div class="grammar-example">${e.jp}<br><span class="grammar-example-zh">${e.zh}</span></div>`).join('<br>')}
+    </div>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════ */
+function setQuizType(type, el) {
+  quizType = type;
+  document.querySelectorAll('.quiz-type-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  startQuiz();
+}
+
+function startQuiz() {
+  quizIdx = 0; quizScore = 0; quizResults = []; quizAnswered = false;
+  document.getElementById('quiz-area').style.display = 'block';
+  document.getElementById('quiz-result-area').style.display = 'none';
+  buildQuizItems();
+  showQuizQuestion();
+}
+
+function buildQuizItems() {
+  const pool = allCards.length > 10 ? allCards : jlptCards;
+  if (quizType === 'dialog') { quizItems = shuffle([...DIALOG_QUESTIONS]).slice(0, 5); return; }
+  if (quizType === 'reading') { quizItems = READING_QUESTIONS; return; }
+  const src = [...pool]; shuffle(src);
+  quizItems = src.slice(0, 10);
+}
+
+function showQuizQuestion() {
+  quizAnswered = false;
+  document.getElementById('quiz-feedback').style.display = 'none';
+  document.getElementById('quiz-next-btn').style.display = 'none';
+  document.getElementById('quiz-submit-btn').style.display = 'none';
+  document.getElementById('quiz-progress-text').textContent = `${quizIdx + 1} / ${quizItems.length}`;
+  document.getElementById('quiz-score-inline').textContent = `正解・答對：${quizScore}`;
+
+  const card = document.getElementById('quiz-card-el');
+  if (quizType === 'choice') renderChoiceQ(card);
+  else if (quizType === 'fill') renderFillQ(card);
+  else if (quizType === 'dialog') renderDialogQ(card);
+  else if (quizType === 'reading') renderReadingQ(card);
+}
+
+function renderChoiceQ(card) {
+  const c = quizItems[quizIdx];
+  const pool = allCards.length > 4 ? allCards : jlptCards;
+  const wrong = pool.filter(x => x.id !== c.id).sort(() => 0.5 - Math.random()).slice(0, 3).map(x => x.zh);
+  const choices = shuffle([c.zh, ...wrong]);
+  card.innerHTML = `
+    <div class="quiz-q-main">${c.jp}</div>
+    <div class="quiz-q-reading">${c.reading}</div>
+    <div class="quiz-choices">
+      ${choices.map(ch => `<button class="quiz-choice" onclick="answerChoice(this,'${ch.replace(/'/g,"\\'")}','${c.zh.replace(/'/g,"\\'")}','${c.id}')">${ch}</button>`).join('')}
+    </div>`;
+}
+
+function renderFillQ(card) {
+  const c = quizItems[quizIdx];
+  const blank = c.ex_jp ? c.ex_jp.replace(c.jp, '＿＿＿') : c.jp;
+  card.innerHTML = `
+    <div style="font-size:0.85rem;color:var(--ink-3);margin-bottom:0.75rem">空欄を埋めてください・請填入空格</div>
+    <div class="quiz-q-sentence">${blank}<br><small style="color:var(--ink-3)">${c.ex_zh || ''}</small></div>
+    <input class="quiz-fill" id="fill-input" placeholder="答えを入力・輸入答案" />
+    <div style="font-size:0.8rem;color:var(--ink-3)">ヒント：${c.reading}</div>`;
+  document.getElementById('quiz-submit-btn').style.display = 'inline-flex';
+}
+
+function renderDialogQ(card) {
+  const q = quizItems[quizIdx];
+  card.innerHTML = `
+    <div style="font-size:0.82rem;color:var(--ink-3);margin-bottom:0.75rem">${q.context}</div>
+    <div class="quiz-q-sentence">${q.dialog.join('<br>')}</div>
+    <div class="quiz-choices">
+      ${q.choices.map(ch => `<button class="quiz-choice" onclick="answerDialog(this,'${ch}','${q.answer}')">${ch}</button>`).join('')}
+    </div>`;
+}
+
+function renderReadingQ(card) {
+  const q = quizItems[quizIdx % quizItems.length];
+  const qi = quizIdx % q.questions.length;
+  const qItem = q.questions[qi];
+  card.innerHTML = `
+    <div style="font-size:0.82rem;color:var(--ink-3);margin-bottom:0.5rem">${q.title}</div>
+    <div style="font-size:0.85rem;line-height:1.9;padding:0.75rem;background:var(--paper-2);border-radius:var(--radius-sm);margin-bottom:1rem">${q.text}<br><small style="color:var(--ink-3)">${q.textZh}</small></div>
+    <div style="font-weight:500;margin-bottom:0.75rem">${qItem.q}<br><small style="color:var(--ink-3)">${qItem.qZh}</small></div>
+    <div class="quiz-choices">
+      ${qItem.choices.map(ch => `<button class="quiz-choice" onclick="answerChoice(this,'${ch}','${qItem.answer}','reading')">${ch}</button>`).join('')}
+    </div>`;
+}
+
+function answerChoice(btn, chosen, correct, cardId) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  document.querySelectorAll('.quiz-choice').forEach(b => b.disabled = true);
+  const isCorrect = chosen === correct;
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) document.querySelectorAll('.quiz-choice').forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+  if (isCorrect) quizScore++;
+  else if (cardId && cardId !== 'reading') addToWrong(cardId);
+  showFeedback(isCorrect, correct);
+  quizResults.push({card: quizItems[quizIdx], correct: isCorrect, chosen, answer: correct});
+  document.getElementById('quiz-next-btn').style.display = 'inline-flex';
+}
+
+function answerDialog(btn, chosen, correct) { answerChoice(btn, chosen, correct, null); }
+
+function submitQuiz() {
+  const input = document.getElementById('fill-input');
+  if (!input) return;
+  const val = input.value.trim();
+  const c = quizItems[quizIdx];
+  const isCorrect = val === c.jp || val === c.reading || val === c.zh;
+  if (isCorrect) quizScore++;
+  else addToWrong(c.id);
+  showFeedback(isCorrect, `${c.jp}（${c.reading}）= ${c.zh}`);
+  quizResults.push({card: c, correct: isCorrect, chosen: val, answer: c.jp});
+  input.disabled = true;
+  document.getElementById('quiz-submit-btn').style.display = 'none';
+  document.getElementById('quiz-next-btn').style.display = 'inline-flex';
+}
+
+function showFeedback(correct, ans) {
+  const fb = document.getElementById('quiz-feedback');
+  fb.style.display = 'block';
+  fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '正解！・答對了！' : `不正解・答錯了：${ans}`;
+}
+
+function nextQuiz() {
+  quizIdx++;
+  if (quizIdx >= quizItems.length) { finishQuiz(); return; }
+  showQuizQuestion();
+}
+
+function finishQuiz() {
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('quiz-result-area').style.display = 'block';
+  document.getElementById('result-score').textContent = quizScore;
+  document.getElementById('result-max').textContent = `/ ${quizItems.length}`;
+  const pct = Math.round(quizScore / quizItems.length * 100);
+  const grade = pct >= 90 ? '🏆 優秀・優秀' : pct >= 70 ? '👍 良好・良好' : pct >= 50 ? '📚 要復習・需複習' : '💪 頑張ろう・加油！';
+  const gradeEl = document.getElementById('result-grade');
+  gradeEl.textContent = grade;
+  gradeEl.style.background = pct >= 70 ? 'var(--green-bg)' : 'var(--amber-bg)';
+  gradeEl.style.color = pct >= 70 ? 'var(--green)' : 'var(--amber)';
+
+  document.getElementById('result-list').innerHTML = quizResults.map(r =>
+    `<div class="result-item ${r.correct ? 'correct-item' : 'wrong-item'}">
+      <span class="result-item-icon">${r.correct ? '○' : '✕'}</span>
+      <span class="result-item-jp">${r.card.jp || ''}</span>
+      <span class="result-item-ans">${r.correct ? r.answer : `あなた・你：${r.chosen} → 正解・正確：${r.answer}`}</span>
+    </div>`
+  ).join('');
+
+  saveHistory(quizScore, quizItems.length, quizType);
+}
+
+function restartQuiz() { startQuiz(); }
+
+/* ═══════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════ */
+function saveHistory(score, total, type) {
+  const history = LS.get('quizHistory') || [];
+  history.unshift({
+    date: new Date().toLocaleString('zh-TW'),
+    score, total, type,
+    pct: Math.round(score / total * 100)
+  });
+  LS.set('quizHistory', history.slice(0, 50));
+}
+
+function renderHistory() {
+  const history = LS.get('quizHistory') || [];
+  const el = document.getElementById('history-list');
+  if (!history.length) { el.innerHTML = '<div class="history-empty">まだ記録がありません・尚無記錄</div>'; return; }
+  el.innerHTML = history.map(h =>
+    `<div class="history-session">
+      <div class="history-session-header">
+        <div class="history-session-date">${h.date}・${typeLabel(h.type)}</div>
+        <div class="history-session-score" style="color:${h.pct>=70?'var(--green)':'var(--red)'}">${h.score}/${h.total}（${h.pct}%）</div>
+      </div>
+      <div class="history-session-details">${scoreBar(h.pct)}</div>
+    </div>`
+  ).join('');
+}
+
+function typeLabel(t) { return {choice:'選択・選擇題',fill:'穴埋め・克漏字',dialog:'会話・對話',reading:'読解・閱讀'}[t] || t; }
+function scoreBar(pct) {
+  const filled = Math.round(pct / 10);
+  return '■'.repeat(filled) + '□'.repeat(10 - filled) + ` ${pct}%`;
+}
+
+/* ═══════════════════════════════════════
+   WRONG CARDS
+═══════════════════════════════════════ */
+function addToWrong(cardId) {
+  const wrong = LS.get('wrongCards') || [];
+  if (!wrong.includes(cardId)) { wrong.push(cardId); LS.set('wrongCards', wrong); }
+}
+
+function renderWrongList() {
+  const wrong = LS.get('wrongCards') || [];
+  const el = document.getElementById('wrong-list');
+  if (!wrong.length) { el.innerHTML = '<div class="wrong-empty">間違えた語はありません・沒有答錯的字卡</div>'; return; }
+  const cards = allCards.filter(c => wrong.includes(c.id));
+  el.innerHTML = cards.map(c =>
+    `<div class="card-list-item">
+      <div class="card-list-jp">${c.jp}</div>
+      <div class="card-list-reading">${c.reading}</div>
+      <div class="card-list-zh">${c.zh}</div>
+      <button class="btn" style="margin-left:auto;padding:0.3rem 0.6rem;font-size:0.72rem" onclick="removeWrong('${c.id}')">削除・移除</button>
+    </div>`
+  ).join('');
+}
+
+function removeWrong(id) {
+  const wrong = (LS.get('wrongCards') || []).filter(x => x !== id);
+  LS.set('wrongCards', wrong);
+  renderWrongList();
+}
+
+function clearWrong() {
+  if (confirm('リセットしますか？・確定清除？')) { LS.set('wrongCards', []); renderWrongList(); }
+}
+
+function studyWrong() {
+  const wrong = LS.get('wrongCards') || [];
+  wrongStudyQueue = allCards.filter(c => wrong.includes(c.id));
+  if (!wrongStudyQueue.length) return;
+  shuffle(wrongStudyQueue);
+  themeCards = wrongStudyQueue;
+  themeIdx = 0;
+  goto('themes');
+  document.getElementById('theme-card-area').style.display = 'block';
+  document.getElementById('theme-grid').style.display = 'none';
+  document.getElementById('theme-current-name').textContent = '間違えた語の復習・複習錯誤字卡';
+  document.getElementById('theme-card-count').textContent = `${wrongStudyQueue.length}語`;
+  showThemeCard();
+  renderThemeList();
+}
+
+/* ═══════════════════════════════════════
+   SPEECH
+═══════════════════════════════════════ */
+function speak(src) {
+  if (!('speechSynthesis' in window)) return;
+  const map = {daily: currentDailyCard, theme: currentThemeCard, jlpt: currentJlptCard};
+  const c = map[src];
+  if (!c) return;
+  const u = new SpeechSynthesisUtterance(c.jp);
+  u.lang = 'ja-JP';
+  u.rate = 0.85;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+initDaily();
+</script>
+</body>
+</html>
