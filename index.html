@@ -161,12 +161,21 @@ body {
 }
 .card-ex-zh { color: var(--ink-3); font-size: 0.75rem; }
 .card-grammar {
+  display: inline-block;
   font-size: 0.72rem;
   color: var(--blue);
   background: var(--blue-bg);
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  margin-top: 0.25rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  margin-top: 0.6rem;
+  border: 1px solid rgba(26,74,138,0.15);
+}
+.card-grammar::before {
+  content: '📝 ';
+}
+.card-grammar-wrap {
+  text-align: center;
+  margin-top: 0.5rem;
 }
 .card-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
 
@@ -505,7 +514,7 @@ body {
               <span id="daily-ex-jp"></span><br>
               <span class="card-ex-zh" id="daily-ex-zh"></span>
             </div>
-            <div class="card-grammar" id="daily-grammar"></div>
+            <div class="card-grammar-wrap"><div class="card-grammar" id="daily-grammar"></div></div>
           </div>
         </div>
       </div>
@@ -554,7 +563,7 @@ body {
                 <span id="theme-ex-jp"></span><br>
                 <span class="card-ex-zh" id="theme-ex-zh"></span>
               </div>
-              <div class="card-grammar" id="theme-grammar"></div>
+              <div class="card-grammar-wrap"><div class="card-grammar" id="theme-grammar"></div></div>
             </div>
           </div>
         </div>
@@ -603,7 +612,7 @@ body {
                 <span id="jlpt-ex-jp"></span><br>
                 <span class="card-ex-zh" id="jlpt-ex-zh"></span>
               </div>
-              <div class="card-grammar" id="jlpt-grammar"></div>
+              <div class="card-grammar-wrap"><div class="card-grammar" id="jlpt-grammar"></div></div>
             </div>
           </div>
         </div>
@@ -836,7 +845,9 @@ function showDailyCard() {
   document.getElementById('daily-zh').textContent = c.zh;
   document.getElementById('daily-ex-jp').textContent = c.ex_jp || '';
   document.getElementById('daily-ex-zh').textContent = c.ex_zh || '';
-  document.getElementById('daily-grammar').textContent = c.grammar || '';
+  const dg = document.getElementById('daily-grammar');
+  dg.textContent = c.grammar || '';
+  dg.parentElement.style.display = c.grammar ? 'block' : 'none';
   const tags = document.getElementById('daily-tags');
   tags.innerHTML = `<span class="tag tag-${c.level}">${c.level}</span><span class="tag tag-theme">${c.theme}</span>`;
 }
@@ -922,7 +933,9 @@ function showThemeCard() {
   document.getElementById('theme-zh').textContent = c.zh;
   document.getElementById('theme-ex-jp').textContent = c.ex_jp || '';
   document.getElementById('theme-ex-zh').textContent = c.ex_zh || '';
-  document.getElementById('theme-grammar').textContent = c.grammar || '';
+  const tg = document.getElementById('theme-grammar');
+  tg.textContent = c.grammar || '';
+  tg.parentElement.style.display = c.grammar ? 'block' : 'none';
   document.getElementById('theme-tags').innerHTML = `<span class="tag tag-${c.level}">${c.level}</span>`;
 }
 
@@ -1061,14 +1074,29 @@ function showQuizQuestion() {
 function renderChoiceQ(card) {
   const c = quizItems[quizIdx];
   const pool = allCards.length > 4 ? allCards : jlptCards;
-  const wrong = pool.filter(x => x.id !== c.id).sort(() => 0.5 - Math.random()).slice(0, 3).map(x => x.zh);
-  const choices = shuffle([c.zh, ...wrong]);
-  card.innerHTML = `
-    <div class="quiz-q-main">${c.jp}</div>
-    <div class="quiz-q-reading">${c.reading}</div>
-    <div class="quiz-choices">
-      ${choices.map(ch => `<button class="quiz-choice" onclick="answerChoice(this,'${ch.replace(/'/g,"\\'")}','${c.zh.replace(/'/g,"\\'")}','${c.id}')">${ch}</button>`).join('')}
-    </div>`;
+  const jpToZh = (quizIdx % 2 === 0);
+  const esc = s => s.replace(/'/g, "\\'");
+  if (jpToZh) {
+    const wrong = pool.filter(x => x.id !== c.id).sort(() => 0.5 - Math.random()).slice(0, 3).map(x => x.zh);
+    const choices = shuffle([c.zh, ...wrong]);
+    card.innerHTML =
+      '<div style="font-size:0.78rem;color:var(--ink-3);text-align:center;margin-bottom:0.75rem">この単語の意味は？・這個單字的意思是？</div>' +
+      '<div class="quiz-q-main">' + c.jp + '</div>' +
+      '<div class="quiz-q-reading">' + c.reading + '</div>' +
+      '<div class="quiz-choices">' +
+      choices.map(ch => '<button class="quiz-choice" onclick="answerChoice(this,\'' + esc(ch) + '\',\'' + esc(c.zh) + '\',\'' + c.id + '\')">' + ch + '</button>').join('') +
+      '</div>';
+  } else {
+    const wrong = pool.filter(x => x.id !== c.id).sort(() => 0.5 - Math.random()).slice(0, 3).map(x => x.jp);
+    const choices = shuffle([c.jp, ...wrong]);
+    card.innerHTML =
+      '<div style="font-size:0.78rem;color:var(--ink-3);text-align:center;margin-bottom:0.75rem">日本語を選んでください・請選出對應的日文</div>' +
+      '<div class="quiz-q-main" style="font-size:1.4rem">' + c.zh + '</div>' +
+      '<div class="quiz-q-reading" style="font-size:0.85rem">' + c.reading + '</div>' +
+      '<div class="quiz-choices">' +
+      choices.map(ch => '<button class="quiz-choice" onclick="answerChoice(this,\'' + esc(ch) + '\',\'' + esc(c.jp) + '\',\'' + c.id + '\')">' + ch + '</button>').join('') +
+      '</div>';
+  }
 }
 
 function renderFillQ(card) {
