@@ -357,44 +357,34 @@ body {
 }
 .quiz-type-tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-/* ── Results ── */
-.result-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
-.result-score { font-size: 3rem; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--ink); }
-.result-max { font-size: 1.2rem; color: var(--ink-3); }
-.result-grade {
-  font-size: 0.82rem;
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-weight: 500;
-}
-.result-list { display: flex; flex-direction: column; gap: 0.4rem; }
-.result-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-}
-.result-item.correct-item { background: var(--green-bg); }
-.result-item.wrong-item { background: var(--red-bg); }
-.result-item-jp { font-family: 'Noto Serif JP', serif; font-weight: 700; font-size: 1rem; min-width: 50px; }
-.result-item-ans { color: var(--ink-2); flex: 1; }
-.result-item-icon { font-size: 0.9rem; }
-
-/* ── History ── */
-.history-empty { text-align: center; color: var(--ink-3); padding: 3rem; font-size: 0.88rem; }
-.history-session {
+/* ── Quiz final summary ── */
+.quiz-final-summary {
+  text-align: center;
+  padding: 1.5rem;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1rem 1.25rem;
+}
+.quiz-final-score {
+  font-size: 2.8rem;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.quiz-final-label {
+  font-size: 0.88rem;
+  color: var(--ink-2);
   margin-bottom: 0.75rem;
 }
-.history-session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.history-session-date { font-size: 0.78rem; color: var(--ink-3); }
-.history-session-score { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500; }
-.history-session-details { font-size: 0.78rem; color: var(--ink-2); }
+.quiz-final-grade {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+}
 
 /* ── Wrong Cards ── */
 .wrong-empty { text-align: center; color: var(--ink-3); padding: 3rem; font-size: 0.88rem; }
@@ -453,9 +443,6 @@ body {
     <button class="nav-item" onclick="goto('jlpt')">
       <span class="nav-icon">📊</span> JLPT N1〜N5
     </button>
-    <button class="nav-item" onclick="goto('grammar')">
-      <span class="nav-icon">📖</span> 文法補充
-    </button>
     <button class="nav-item" onclick="goto('quiz')">
       <span class="nav-icon">✏</span> 小テスト
     </button>
@@ -463,9 +450,6 @@ body {
 
   <div class="nav-group">
     <div class="nav-label">記録 / 記錄</div>
-    <button class="nav-item" onclick="goto('history')">
-      <span class="nav-icon">📈</span> テスト結果
-    </button>
     <button class="nav-item" onclick="goto('wrong')">
       <span class="nav-icon">⚑</span> 間違えた語
     </button>
@@ -642,13 +626,11 @@ body {
   <!-- ── Quiz ── -->
   <div class="page" id="page-quiz">
     <div class="page-title">小テスト / 小測驗</div>
-    <div class="page-sub">4種類のテストで実力を確認・四種題型測驗實力</div>
+    <div class="page-sub">10問・字卡庫隨機出題，答錯自動收入錯字集中區</div>
 
     <div class="quiz-type-tabs">
       <button class="quiz-type-tab active" onclick="setQuizType('choice',this)">選択・選擇題</button>
       <button class="quiz-type-tab" onclick="setQuizType('fill',this)">穴埋め・克漏字</button>
-      <button class="quiz-type-tab" onclick="setQuizType('dialog',this)">会話・對話填空</button>
-      <button class="quiz-type-tab" onclick="setQuizType('reading',this)">読解・閱讀理解</button>
     </div>
 
     <div id="quiz-area">
@@ -665,24 +647,12 @@ body {
     </div>
 
     <div id="quiz-result-area" style="display:none">
-      <div class="result-header">
-        <div class="result-score" id="result-score">0</div>
-        <div class="result-max" id="result-max">/ 10</div>
-        <div class="result-grade" id="result-grade"></div>
-      </div>
-      <div class="result-list" id="result-list"></div>
+      <div class="quiz-final-summary" id="quiz-final-summary"></div>
       <div style="display:flex;gap:0.75rem;margin-top:1.25rem">
         <button class="btn btn-primary" onclick="restartQuiz()">もう一度・再測一次</button>
-        <button class="btn" onclick="goto('history')">結果を保存済み・已儲存結果</button>
+        <button class="btn" onclick="goto('wrong')">間違えた語を確認・查看錯字</button>
       </div>
     </div>
-  </div>
-
-  <!-- ── History ── -->
-  <div class="page" id="page-history">
-    <div class="page-title">テスト結果 / 測驗記錄</div>
-    <div class="page-sub">過去のテスト結果を確認・查看過去測驗結果</div>
-    <div id="history-list"></div>
   </div>
 
   <!-- ── Wrong Cards ── -->
@@ -743,23 +713,7 @@ const GRAMMAR_DATA = [
   {title:'〜ようになる', usage:'変化 / 表示能力或習慣的改變', level:'N3', examples:[{jp:'日本語が話せるようになりました。',zh:'變得能夠說日文了。'},{jp:'毎日運動するようになりました。',zh:'變得每天都會運動了。'}]},
 ];
 
-const DIALOG_QUESTIONS = [
-  {context:'レストランで / 在餐廳', dialog:['店員：いらっしゃいませ。何名様ですか？','客：___人です。'], blank:2, hint:'（人数・人數）', choices:['二', '多い', '静か', 'たくさん'], answer:'二', zh:'店員：歡迎光臨。請問幾位？ / 客人：兩位。'},
-  {context:'駅で / 在車站', dialog:['A：すみません、新宿駅___どこですか？','B：あそこです。'], blank:0, hint:'（助詞・助詞）', choices:['は','が','を','で'], answer:'は', zh:'A：不好意思，新宿站在哪裡？ / B：在那裡。'},
-  {context:'お店で / 在店裡', dialog:['客：これ、___もらえますか？','店員：はい、どうぞ。'], blank:0, hint:'（表達請求・請求表現）', choices:['いただいて','ください','くれて','もって'], answer:'ください', zh:'客人：請給我這個。 / 店員：好的，請。'},
-];
 
-const READING_QUESTIONS = [
-  {
-    title:'日本の祭り / 日本祭典',
-    text:'日本には様々なお祭りがあります。夏には花火大会がよく行われます。地域の人々が集まり、浴衣を着て楽しみます。お祭りには屋台があり、たこ焼きや焼きそばなどが売られています。',
-    textZh:'日本有各式各樣的祭典。夏天常舉辦煙火大會。當地居民聚集在一起，穿著浴衣享樂。祭典上有攤販，販售章魚燒和炒麵等食物。',
-    questions:[
-      {q:'夏に何がよく行われますか？', qZh:'夏天常舉辦什麼？', choices:['お祭り','花火大会','屋台','浴衣'], answer:'花火大会'},
-      {q:'お祭りで何が売られていますか？', qZh:'祭典上販售什麼？', choices:['花火','浴衣','たこ焼き','着物'], answer:'たこ焼き'},
-    ]
-  }
-];
 
 /* ─ State ─ */
 let allCards = [];
@@ -799,11 +753,10 @@ function goto(id) {
     if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + id + "'"))
       b.classList.add('active');
   });
-  if (id === 'history') renderHistory();
   if (id === 'wrong') renderWrongList();
-  if (id === 'grammar') renderGrammar();
   if (id === 'themes') renderThemeGrid();
   if (id === 'jlpt') loadJlptLevel(currentLevel);
+  if (id === 'quiz') startQuiz();
 }
 
 /* ═══════════════════════════════════════
@@ -1049,9 +1002,15 @@ function startQuiz() {
 }
 
 function buildQuizItems() {
-  const pool = allCards.length > 10 ? allCards : jlptCards;
-  if (quizType === 'dialog') { quizItems = shuffle([...DIALOG_QUESTIONS]).slice(0, 5); return; }
-  if (quizType === 'reading') { quizItems = READING_QUESTIONS; return; }
+
+  // Choose pool: prefer allCards (all themes loaded), else jlptCards, else wait
+  const pool = allCards.length >= 10 ? allCards : jlptCards.length >= 10 ? jlptCards : [];
+  if (pool.length < 4) {
+    quizItems = [];
+    document.getElementById('quiz-card-el').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:var(--ink-3)">まず字卡を読み込んでください。<br>請先瀏覽主題字卡或JLPT字卡，讓題庫準備好。</div>';
+    return;
+  }
   const src = [...pool]; shuffle(src);
   quizItems = src.slice(0, 10);
 }
@@ -1067,13 +1026,11 @@ function showQuizQuestion() {
   const card = document.getElementById('quiz-card-el');
   if (quizType === 'choice') renderChoiceQ(card);
   else if (quizType === 'fill') renderFillQ(card);
-  else if (quizType === 'dialog') renderDialogQ(card);
-  else if (quizType === 'reading') renderReadingQ(card);
 }
 
 function renderChoiceQ(card) {
   const c = quizItems[quizIdx];
-  const pool = allCards.length > 4 ? allCards : jlptCards;
+  const pool = allCards.length >= 10 ? allCards : jlptCards.length >= 4 ? jlptCards : quizItems;
   const jpToZh = (quizIdx % 2 === 0);
   const esc = s => s.replace(/'/g, "\\'");
   if (jpToZh) {
@@ -1092,7 +1049,7 @@ function renderChoiceQ(card) {
     card.innerHTML =
       '<div style="font-size:0.78rem;color:var(--ink-3);text-align:center;margin-bottom:0.75rem">日本語を選んでください・請選出對應的日文</div>' +
       '<div class="quiz-q-main" style="font-size:1.4rem">' + c.zh + '</div>' +
-      '<div class="quiz-q-reading" style="font-size:0.85rem">' + c.reading + '</div>' +
+      /* no reading hint on ZH->JP to avoid leaking answer */
       '<div class="quiz-choices">' +
       choices.map(ch => '<button class="quiz-choice" onclick="answerChoice(this,\'' + esc(ch) + '\',\'' + esc(c.jp) + '\',\'' + c.id + '\')">' + ch + '</button>').join('') +
       '</div>';
@@ -1101,37 +1058,26 @@ function renderChoiceQ(card) {
 
 function renderFillQ(card) {
   const c = quizItems[quizIdx];
-  const blank = c.ex_jp ? c.ex_jp.replace(c.jp, '＿＿＿') : c.jp;
-  card.innerHTML = `
-    <div style="font-size:0.85rem;color:var(--ink-3);margin-bottom:0.75rem">空欄を埋めてください・請填入空格</div>
-    <div class="quiz-q-sentence">${blank}<br><small style="color:var(--ink-3)">${c.ex_zh || ''}</small></div>
-    <input class="quiz-fill" id="fill-input" placeholder="答えを入力・輸入答案" />
-    <div style="font-size:0.8rem;color:var(--ink-3)">ヒント：${c.reading}</div>`;
+  // Build blank sentence - try replacing kanji, then kana
+  let blank = c.ex_jp || '';
+  if (blank.includes(c.jp)) {
+    blank = blank.replace(c.jp, '<span style="color:var(--ink-3)">＿＿＿</span>');
+  } else if (c.reading && blank.includes(c.reading)) {
+    blank = blank.replace(c.reading, '<span style="color:var(--ink-3)">＿＿＿</span>');
+  } else {
+    // fallback: show meaning, ask for JP word
+    blank = '（' + c.zh + '）→ ＿＿＿';
+  }
+  card.innerHTML =
+    '<div style="font-size:0.85rem;color:var(--ink-3);margin-bottom:0.75rem">空欄に日本語を入れてください・請輸入日文填入空格</div>' +
+    '<div class="quiz-q-sentence" style="font-size:0.95rem;line-height:2">' + blank + '</div>' +
+    '<div style="font-size:0.78rem;color:var(--ink-3);margin:0.5rem 0">' + (c.ex_zh || '') + '</div>' +
+    '<input class="quiz-fill" id="fill-input" placeholder="日本語で入力・用日文輸入" />' +
+    '<div style="font-size:0.78rem;color:var(--ink-3);margin-top:0.4rem">中文：' + c.zh + '</div>';
   document.getElementById('quiz-submit-btn').style.display = 'inline-flex';
 }
 
-function renderDialogQ(card) {
-  const q = quizItems[quizIdx];
-  card.innerHTML = `
-    <div style="font-size:0.82rem;color:var(--ink-3);margin-bottom:0.75rem">${q.context}</div>
-    <div class="quiz-q-sentence">${q.dialog.join('<br>')}</div>
-    <div class="quiz-choices">
-      ${q.choices.map(ch => `<button class="quiz-choice" onclick="answerDialog(this,'${ch}','${q.answer}')">${ch}</button>`).join('')}
-    </div>`;
-}
 
-function renderReadingQ(card) {
-  const q = quizItems[quizIdx % quizItems.length];
-  const qi = quizIdx % q.questions.length;
-  const qItem = q.questions[qi];
-  card.innerHTML = `
-    <div style="font-size:0.82rem;color:var(--ink-3);margin-bottom:0.5rem">${q.title}</div>
-    <div style="font-size:0.85rem;line-height:1.9;padding:0.75rem;background:var(--paper-2);border-radius:var(--radius-sm);margin-bottom:1rem">${q.text}<br><small style="color:var(--ink-3)">${q.textZh}</small></div>
-    <div style="font-weight:500;margin-bottom:0.75rem">${qItem.q}<br><small style="color:var(--ink-3)">${qItem.qZh}</small></div>
-    <div class="quiz-choices">
-      ${qItem.choices.map(ch => `<button class="quiz-choice" onclick="answerChoice(this,'${ch}','${qItem.answer}','reading')">${ch}</button>`).join('')}
-    </div>`;
-}
 
 function answerChoice(btn, chosen, correct, cardId) {
   if (quizAnswered) return;
@@ -1147,14 +1093,13 @@ function answerChoice(btn, chosen, correct, cardId) {
   document.getElementById('quiz-next-btn').style.display = 'inline-flex';
 }
 
-function answerDialog(btn, chosen, correct) { answerChoice(btn, chosen, correct, null); }
 
 function submitQuiz() {
   const input = document.getElementById('fill-input');
   if (!input) return;
   const val = input.value.trim();
   const c = quizItems[quizIdx];
-  const isCorrect = val === c.jp || val === c.reading || val === c.zh;
+  const isCorrect = val === c.jp || val === c.reading;
   if (isCorrect) quizScore++;
   else addToWrong(c.id);
   showFeedback(isCorrect, `${c.jp}（${c.reading}）= ${c.zh}`);
@@ -1180,61 +1125,23 @@ function nextQuiz() {
 function finishQuiz() {
   document.getElementById('quiz-area').style.display = 'none';
   document.getElementById('quiz-result-area').style.display = 'block';
-  document.getElementById('result-score').textContent = quizScore;
-  document.getElementById('result-max').textContent = `/ ${quizItems.length}`;
-  const pct = Math.round(quizScore / quizItems.length * 100);
+  const total = quizItems.length;
+  const pct = Math.round(quizScore / total * 100);
   const grade = pct >= 90 ? '🏆 優秀・優秀' : pct >= 70 ? '👍 良好・良好' : pct >= 50 ? '📚 要復習・需複習' : '💪 頑張ろう・加油！';
-  const gradeEl = document.getElementById('result-grade');
-  gradeEl.textContent = grade;
-  gradeEl.style.background = pct >= 70 ? 'var(--green-bg)' : 'var(--amber-bg)';
-  gradeEl.style.color = pct >= 70 ? 'var(--green)' : 'var(--amber)';
-
-  document.getElementById('result-list').innerHTML = quizResults.map(r =>
-    `<div class="result-item ${r.correct ? 'correct-item' : 'wrong-item'}">
-      <span class="result-item-icon">${r.correct ? '○' : '✕'}</span>
-      <span class="result-item-jp">${r.card.jp || ''}</span>
-      <span class="result-item-ans">${r.correct ? r.answer : `あなた・你：${r.chosen} → 正解・正確：${r.answer}`}</span>
-    </div>`
-  ).join('');
-
-  saveHistory(quizScore, quizItems.length, quizType);
+  const gradeColor = pct >= 70 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+  const gradeBg = pct >= 70 ? 'var(--green-bg)' : pct >= 50 ? 'var(--amber-bg)' : 'var(--red-bg)';
+  const wrongCount = quizResults.filter(r => !r.correct).length;
+  document.getElementById('quiz-final-summary').innerHTML =
+    '<div class="quiz-final-score">' + quizScore + ' / ' + total + '</div>' +
+    '<div class="quiz-final-label">正解率・答對率 ' + pct + '%' +
+      (wrongCount > 0 ? '　|　錯字 ' + wrongCount + ' 語已加入錯字集中區' : '　|　全部答對！') +
+    '</div>' +
+    '<span class="quiz-final-grade" style="background:' + gradeBg + ';color:' + gradeColor + '">' + grade + '</span>';
 }
 
 function restartQuiz() { startQuiz(); }
 
-/* ═══════════════════════════════════════
-   HISTORY
-═══════════════════════════════════════ */
-function saveHistory(score, total, type) {
-  const history = LS.get('quizHistory') || [];
-  history.unshift({
-    date: new Date().toLocaleString('zh-TW'),
-    score, total, type,
-    pct: Math.round(score / total * 100)
-  });
-  LS.set('quizHistory', history.slice(0, 50));
-}
 
-function renderHistory() {
-  const history = LS.get('quizHistory') || [];
-  const el = document.getElementById('history-list');
-  if (!history.length) { el.innerHTML = '<div class="history-empty">まだ記録がありません・尚無記錄</div>'; return; }
-  el.innerHTML = history.map(h =>
-    `<div class="history-session">
-      <div class="history-session-header">
-        <div class="history-session-date">${h.date}・${typeLabel(h.type)}</div>
-        <div class="history-session-score" style="color:${h.pct>=70?'var(--green)':'var(--red)'}">${h.score}/${h.total}（${h.pct}%）</div>
-      </div>
-      <div class="history-session-details">${scoreBar(h.pct)}</div>
-    </div>`
-  ).join('');
-}
-
-function typeLabel(t) { return {choice:'選択・選擇題',fill:'穴埋め・克漏字',dialog:'会話・對話',reading:'読解・閱讀'}[t] || t; }
-function scoreBar(pct) {
-  const filled = Math.round(pct / 10);
-  return '■'.repeat(filled) + '□'.repeat(10 - filled) + ` ${pct}%`;
-}
 
 /* ═══════════════════════════════════════
    WRONG CARDS
