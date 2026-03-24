@@ -343,19 +343,7 @@ body {
 .quiz-feedback.correct { background: var(--green-bg); color: var(--green); }
 .quiz-feedback.wrong { background: var(--red-bg); color: var(--red); }
 .quiz-progress { font-size: 0.78rem; color: var(--ink-3); margin-bottom: 1rem; display: flex; justify-content: space-between; }
-.quiz-type-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; }
-.quiz-type-tab {
-  padding: 0.35rem 0.9rem;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  font-size: 0.78rem;
-  cursor: pointer;
-  background: var(--paper);
-  color: var(--ink-2);
-  font-family: 'Noto Sans JP', sans-serif;
-  transition: all var(--transition);
-}
-.quiz-type-tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
 
 /* ── Quiz final summary ── */
 .quiz-final-summary {
@@ -386,8 +374,43 @@ body {
   border-radius: 20px;
 }
 
+/* ── Quiz feedback example ── */
+.quiz-feedback-example {
+  margin-top: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.9;
+  text-align: left;
+}
+.quiz-feedback-example .ex-jp { color: var(--ink); }
+.quiz-feedback-example .ex-zh { color: var(--ink-3); font-size: 0.78rem; }
+
 /* ── Wrong Cards ── */
 .wrong-empty { text-align: center; color: var(--ink-3); padding: 3rem; font-size: 0.88rem; }
+.wrong-card-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.wrong-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.wrong-card-ex {
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--ink-2);
+  border-left: 2px solid var(--paper-3);
+  padding-left: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.wrong-card-ex-zh { color: var(--ink-3); font-size: 0.76rem; }
 
 /* ── Mobile ── */
 @media (max-width: 680px) {
@@ -626,12 +649,9 @@ body {
   <!-- ── Quiz ── -->
   <div class="page" id="page-quiz">
     <div class="page-title">小テスト / 小測驗</div>
-    <div class="page-sub">10問・字卡庫隨機出題，答錯自動收入錯字集中區</div>
+    <div class="page-sub">10問・看例句填入正確單字，答錯自動收入錯字集中區</div>
 
-    <div class="quiz-type-tabs">
-      <button class="quiz-type-tab active" onclick="setQuizType('choice',this)">選択・選擇題</button>
-      <button class="quiz-type-tab" onclick="setQuizType('fill',this)">穴埋め・克漏字</button>
-    </div>
+
 
     <div id="quiz-area">
       <div class="quiz-progress">
@@ -991,14 +1011,10 @@ function renderGrammar() {
 /* ═══════════════════════════════════════
    QUIZ
 ═══════════════════════════════════════ */
-function setQuizType(type, el) {
-  quizType = type;
-  document.querySelectorAll('.quiz-type-tab').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  startQuiz();
-}
+
 
 function startQuiz() {
+  quizType = 'fill';
   quizIdx = 0; quizScore = 0; quizResults = []; quizAnswered = false;
   document.getElementById('quiz-result-area').style.display = 'none';
   const ready = buildQuizItems();
@@ -1040,37 +1056,9 @@ function showQuizQuestion() {
   document.getElementById('quiz-score-inline').textContent = `正解・答對：${quizScore}`;
 
   const card = document.getElementById('quiz-card-el');
-  if (quizType === 'choice') renderChoiceQ(card);
-  else if (quizType === 'fill') renderFillQ(card);
+  renderFillQ(card);
 }
 
-function renderChoiceQ(card) {
-  const c = quizItems[quizIdx];
-  const pool = allCards.length >= 10 ? allCards : jlptCards.length >= 4 ? jlptCards : quizItems;
-  const jpToZh = (quizIdx % 2 === 0);
-  const esc = s => s.replace(/'/g, "\\'");
-  if (jpToZh) {
-    const wrong = pool.filter(x => x.id !== c.id).sort(() => 0.5 - Math.random()).slice(0, 3).map(x => x.zh);
-    const choices = shuffle([c.zh, ...wrong]);
-    card.innerHTML =
-      '<div style="font-size:0.78rem;color:var(--ink-3);text-align:center;margin-bottom:0.75rem">この単語の意味は？・這個單字的意思是？</div>' +
-      '<div class="quiz-q-main">' + c.jp + '</div>' +
-      '<div class="quiz-q-reading">' + c.reading + '</div>' +
-      '<div class="quiz-choices">' +
-      choices.map(ch => '<button class="quiz-choice" onclick="answerChoice(this,\'' + esc(ch) + '\',\'' + esc(c.zh) + '\',\'' + c.id + '\')">' + ch + '</button>').join('') +
-      '</div>';
-  } else {
-    const wrong = pool.filter(x => x.id !== c.id).sort(() => 0.5 - Math.random()).slice(0, 3).map(x => x.jp);
-    const choices = shuffle([c.jp, ...wrong]);
-    card.innerHTML =
-      '<div style="font-size:0.78rem;color:var(--ink-3);text-align:center;margin-bottom:0.75rem">日本語を選んでください・請選出對應的日文</div>' +
-      '<div class="quiz-q-main" style="font-size:1.4rem">' + c.zh + '</div>' +
-      /* no reading hint on ZH->JP to avoid leaking answer */
-      '<div class="quiz-choices">' +
-      choices.map(ch => '<button class="quiz-choice" onclick="answerChoice(this,\'' + esc(ch) + '\',\'' + esc(c.jp) + '\',\'' + c.id + '\')">' + ch + '</button>').join('') +
-      '</div>';
-  }
-}
 
 function renderFillQ(card) {
   const c = quizItems[quizIdx];
@@ -1095,19 +1083,6 @@ function renderFillQ(card) {
 
 
 
-function answerChoice(btn, chosen, correct, cardId) {
-  if (quizAnswered) return;
-  quizAnswered = true;
-  document.querySelectorAll('.quiz-choice').forEach(b => b.disabled = true);
-  const isCorrect = chosen === correct;
-  btn.classList.add(isCorrect ? 'correct' : 'wrong');
-  if (!isCorrect) document.querySelectorAll('.quiz-choice').forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
-  if (isCorrect) quizScore++;
-  else if (cardId && cardId !== 'reading') addToWrong(cardId);
-  showFeedback(isCorrect, correct);
-  quizResults.push({card: quizItems[quizIdx], correct: isCorrect, chosen, answer: correct});
-  document.getElementById('quiz-next-btn').style.display = 'inline-flex';
-}
 
 
 function submitQuiz() {
@@ -1118,18 +1093,25 @@ function submitQuiz() {
   const isCorrect = val === c.jp || val === c.reading;
   if (isCorrect) quizScore++;
   else addToWrong(c.id);
-  showFeedback(isCorrect, `${c.jp}（${c.reading}）= ${c.zh}`);
+  showFeedback(isCorrect, c.jp + '（' + c.reading + '）', c);
   quizResults.push({card: c, correct: isCorrect, chosen: val, answer: c.jp});
   input.disabled = true;
   document.getElementById('quiz-submit-btn').style.display = 'none';
   document.getElementById('quiz-next-btn').style.display = 'inline-flex';
 }
 
-function showFeedback(correct, ans) {
+function showFeedback(correct, ans, card) {
   const fb = document.getElementById('quiz-feedback');
   fb.style.display = 'block';
   fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '正解！・答對了！' : `不正解・答錯了：${ans}`;
+  const msg = correct ? '正解！・答對了！' : '不正解・答錯了　正解：' + ans;
+  const exHtml = (card && card.ex_jp)
+    ? '<div class="quiz-feedback-example">' +
+      '<div class="ex-jp">' + card.ex_jp + '</div>' +
+      '<div class="ex-zh">' + (card.ex_zh || '') + '</div>' +
+      '</div>'
+    : '';
+  fb.innerHTML = '<div>' + msg + '</div>' + exHtml;
 }
 
 function nextQuiz() {
@@ -1173,11 +1155,15 @@ function renderWrongList() {
   if (!wrong.length) { el.innerHTML = '<div class="wrong-empty">間違えた語はありません・沒有答錯的字卡</div>'; return; }
   const cards = allCards.filter(c => wrong.includes(c.id));
   el.innerHTML = cards.map(c =>
-    `<div class="card-list-item">
-      <div class="card-list-jp">${c.jp}</div>
-      <div class="card-list-reading">${c.reading}</div>
-      <div class="card-list-zh">${c.zh}</div>
-      <button class="btn" style="margin-left:auto;padding:0.3rem 0.6rem;font-size:0.72rem" onclick="removeWrong('${c.id}')">削除・移除</button>
+    `<div class="wrong-card-item">
+      <div class="wrong-card-header">
+        <span class="card-list-jp">${c.jp}</span>
+        <span class="card-list-reading">${c.reading}</span>
+        <span class="card-list-zh">${c.zh}</span>
+        <button class="btn" style="margin-left:auto;padding:0.25rem 0.6rem;font-size:0.7rem" onclick="removeWrong('${c.id}')">削除・移除</button>
+      </div>
+      ${c.ex_jp ? `<div class="wrong-card-ex">${c.ex_jp}<br><span class="wrong-card-ex-zh">${c.ex_zh || ''}</span></div>` : ''}
+      ${c.grammar ? `<div style="font-size:0.72rem;color:var(--blue);background:var(--blue-bg);display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;margin-top:0.2rem">📝 ${c.grammar}</div>` : ''}
     </div>`
   ).join('');
 }
