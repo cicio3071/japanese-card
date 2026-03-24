@@ -784,6 +784,11 @@ async function initDaily() {
   dailyIdx = 0;
   updateStats();
   showDailyCard();
+  // If user navigated to quiz before cards loaded, refresh it now
+  const quizPage = document.getElementById('page-quiz');
+  if (quizPage && quizPage.classList.contains('active') && quizItems.length === 0) {
+    startQuiz();
+  }
 }
 
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
@@ -995,24 +1000,35 @@ function setQuizType(type, el) {
 
 function startQuiz() {
   quizIdx = 0; quizScore = 0; quizResults = []; quizAnswered = false;
-  document.getElementById('quiz-area').style.display = 'block';
   document.getElementById('quiz-result-area').style.display = 'none';
-  buildQuizItems();
+  const ready = buildQuizItems();
+  if (!ready) {
+    document.getElementById('quiz-area').style.display = 'block';
+    document.getElementById('quiz-progress-text').textContent = '— / —';
+    document.getElementById('quiz-score-inline').textContent = '';
+    document.getElementById('quiz-feedback').style.display = 'none';
+    document.getElementById('quiz-submit-btn').style.display = 'none';
+    document.getElementById('quiz-next-btn').style.display = 'none';
+    document.getElementById('quiz-card-el').innerHTML =
+      '<div style="text-align:center;padding:2rem 1rem;color:var(--ink-3);line-height:2">' +
+      'まず「今日の一枚」か「テーマ別」を開いてください。<br>' +
+      '請先開啟「今日の一枚」或「テーマ別」，字卡載入後即可測驗。</div>';
+    return;
+  }
+  document.getElementById('quiz-area').style.display = 'block';
   showQuizQuestion();
 }
 
 function buildQuizItems() {
-
-  // Choose pool: prefer allCards (all themes loaded), else jlptCards, else wait
+  // Choose pool: prefer allCards (all themes loaded), else jlptCards
   const pool = allCards.length >= 10 ? allCards : jlptCards.length >= 10 ? jlptCards : [];
   if (pool.length < 4) {
     quizItems = [];
-    document.getElementById('quiz-card-el').innerHTML =
-      '<div style="text-align:center;padding:2rem;color:var(--ink-3)">まず字卡を読み込んでください。<br>請先瀏覽主題字卡或JLPT字卡，讓題庫準備好。</div>';
-    return;
+    return false;
   }
   const src = [...pool]; shuffle(src);
   quizItems = src.slice(0, 10);
+  return true;
 }
 
 function showQuizQuestion() {
